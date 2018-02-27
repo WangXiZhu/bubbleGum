@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>首页</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no" />
+    <meta content="telephone=no" name="format-detection" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="dns-prefetch" href="//assets.geilicdn.com">
+    <link rel="dns-prefetch" href="//vap.gw.weidian.com">
+    <link rel="dns-prefetch" href="https://si.geilicdn.com">
+    <style>
+        .container {
+            position: relative;
+            width: 200px;
+            overflow: hidden;
+        }
+
+        ul,
+        li {
+            list-style: none;
+            font-size: 0;
+            padding: 0;
+        }
+
+        .abs {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 24px;
+        }
+
+        ul {
+            position: relative;
+            white-space: nowrap;
+        }
+
+        li {
+            position: relative;
+            display: inline-block;
+        }
+
+        .transition {
+            transition: all .5s ease-out;
+        }
+
+        .arrow {
+            position: absolute;
+            font-size: 36px;
+            top: 80px;
+            padding: 0 10px;
+            cursor: pointer;
+            text-align: center;
+            background: rgba(255,255,255,.8);
+        }
+
+        .left {
+            left: 0;
+        }
+
+        .right {
+            right: 0;
+        }
+
+        .indicator {
+            left: auto;
+            top: auto;
+            bottom: 0px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .indicator-wapper {
+            display: inline-block;
+        }
+
+        .in-list {
+            position: relative;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+
+        .in-item {
+            /* padding-left: 10px; */
+        }
+
+        .circle {
+            width: 10px;
+            height: 10px;
+            box-sizing: border-box;
+            border-radius: 50%;
+            border: 1px solid red;
+        }
+
+        .circle.active {
+            position: relative;
+            background-color: #000;
+        }
+    </style>
+    <script>
+        var cellWidth;
+        var interval = 2000;
+        var index = 0;
+        var timer;
+        var isLeft = false; // 方向向左
+
+        function start(time) {
+            timer = setInterval(function () {
+                loop();
+            }, interval);
+        }
+
+        function loaded() {
+            cellWidth = document.querySelector('.item').offsetWidth;
+            start();
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container j-container">
+        <ul class="list transition">
+            <li class="item">
+                <img src="./assert/1.jpg" alt="" onload="loaded()">
+            </li>
+            <li class="item">
+                <img src="./assert/2.jpg" alt="">
+            </li>
+            <li class="item">
+                <img src="./assert/3.jpg" alt="">
+            </li>
+            <li class="item">
+                <img src="./assert/4.jpg" alt="">
+            </li>
+        </ul>
+        <div class="arrow left" onclick="left()"><</div>
+        <div class="arrow right" onclick="right()">></div>
+
+        <div class="abs indicator">
+            <div class="indicator-wapper">
+                <ul class="in-list j-indicator">
+                    <li class="in-item">
+                        <div class="circle" data-index="0"></div>
+                    </li>
+                    <li class="in-item">
+                        <div class="circle" data-index="1"></div>
+                    </li>
+                    <li class="in-item">
+                        <div class="circle" data-index="2"></div>
+                    </li>
+                    <li class="in-item">
+                        <div class="circle" data-index="3"></div>
+                    </li>
+                    <li class="abs in-item active-indicator">
+                        <div class="circle active"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        var list = document.querySelector('.list');
+        var indicator = document.querySelector('.active-indicator');
+        var itemNum = document.querySelectorAll('.item').length;
+        var indicatorWidth = document.querySelector('.circle').offsetWidth;
+        var j_indicator = document.querySelector('.j-indicator');
+        var j_container = document.querySelector('.j-container');
+
+        function bindEvent() {
+            j_indicator.addEventListener('click', function (e) {
+                var activeIndex = e.target.getAttribute('data-index');
+                if (activeIndex !== void 0) {
+                    index = activeIndex;
+                }
+            }, false);
+
+            j_container.addEventListener('touchmove', function(e){
+                console.log(e)
+            }, false);
+        }
+
+        function loop() {
+            if (index <= 0) {
+                index = 0;
+                isLeft = false;
+            } else if (index >= itemNum - 1) {
+                index = itemNum - 1;
+                isLeft = true;
+            }
+
+            transformImg();
+            transformIndicator();
+
+            if (isLeft) {
+                index--;
+            } else {
+                index++;
+            }
+        }
+
+        function transformImg() {
+            var distance = cellWidth * index;
+            list.style.transform = "translateX(-" + distance + "px)";
+        }
+
+        function transformIndicator() {
+            var distance = indicatorWidth * index;
+            indicator.style.transform = "translateX(" + distance + "px)";
+        }
+
+        function left() {
+            if (isLeft) {
+                return;
+            }
+            index = index - 2;
+            isLeft = true;
+            clearInterval(timer);
+            loop();
+            start();
+        }
+
+        function right() {
+            if (!isLeft) {
+                return;
+            }
+            clearInterval(timer);
+            if (isLeft) {
+                index = index + 2; // 之前向左移动的时候，index已经减1，所以在原基础上 +2
+            }
+            isLeft = false;
+            loop();
+            start();
+        }
+        
+
+
+        function isMobile(){
+            try {
+                var event = document.createEvent('touchstart');
+                return true;
+            }catch(e){
+                return false;
+            }
+        }
+
+        (function () {
+            bindEvent();
+        })();
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "demo",
+  "version": "0.0.0",
+  "description": "这是一个 NB 的项目",
+  "main": "index.js",
+  "scripts": {
+    "daily": "npm install @vdian/vbuilder-cli && v run build-daily -n -c",
+    "pre": "npm install @vdian/vbuilder-cli && v run build-pre -n -c",
+    "prod": "npm install @vdian/vbuilder-cli && v run build-prod -n -c"
+  },
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "element-ui": "^2.2.0"
+  }
+}
