@@ -136,14 +136,15 @@ function midOrderUnRec(node){
 
 
 // 后序-递归
-function postOrder(node){
+function postOrder(node, cb){
     if (node) {
         if (node.child && node.child instanceof Array) {
             node.child.forEach(child=>{
                 postOrder(child);
             });
         } 
-        preListRec.push(node.id);
+        cb && cb (node);
+        // preListRec.push(node.id);
     }
 }
 
@@ -176,4 +177,8 @@ function main(){
     console.log(preListRec);
 }
 
-main();
+// main();
+
+module.exports = {
+    postOrder
+}

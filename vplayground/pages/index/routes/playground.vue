@@ -1,13 +1,7 @@
 <template>
     <div class="pageContent">
         <div class="playgrond" v-html="nodeContent">
-            <!-- <div class="node" style="width: 500px;height: 500px;" > -->
-                <!-- <div class="label">root</div>
 
-                <template class="content" v-html="nodeContent">
-
-                </template> -->
-            <!-- </div> -->
         </div>
 
         <div class="sliderBar">
@@ -23,15 +17,17 @@
 
 <script>
     import {Button} from 'element-ui';
+    import {postOrder} from '../../lib/tree';
+
     export default {
         data(){
             return {
-                // nodeContent: '<div>123</div>',
                 positionGuideBgColor: {
                     margin: 'rgba(214, 43, 28, 0.1)',
                     padding: 'rgba(123, 179, 41, 0.1)',
                     border: 'rgba(251, 170, 51, 0.15)'
                 },
+                nodeContent: '',
                 tree: {
                     label: 'root',
                     id: "1",
@@ -47,7 +43,7 @@
                             child: [],
                             positionGuide: {
                                 marginTop: 20,
-                                paddintTop: 20,
+                                paddingTop: 20,
                                 borderTop: 20
                             }
                         },
@@ -65,90 +61,155 @@
                         height: 500
                     },
                     positionGuide: {
-                        paddintTop: 20,
+                        paddingTop: 20,
                         borderTop: 20
                     }
-                },
-                _html: ''
+                }
             }
         },
         computed: {
-            
-            // 遍历树结构
-            nodeContent(){
-                let html = '', 
-                    style = '',
-                    positionGuide = '';
-                
-                var node = this.tree;
-                var index = 1;
-                
-                // this.bfsTree(this.tree, function(node){
-                    
-                // });
-
-                while(node.child.length){
-                    style = this.getStyle(node.style);
-                    html += `
-                    <div class="node" style='${style}'>
-                        <div class="label">${node.label || index}</div>`
-                    `</div>`;
-                }
-
-                this.tree.child.forEach((node, index) => {
-
-                    style = this.getStyle(node.style);
-
-                    Object.keys(node.positionGuide).forEach(guide=> {
-                        // 上下则参考宽，左右参考高
-                        
-                        let style = {
-                            backgroundColor: this.getPositionGuideBgColor(guide),
-                            top: this.getPositionGuideTop(node, guide),
-                            left: this.getPositionGuideLeft(node, guide),
-
-                        }
-
-                        if (guide.toLowerCase().indexOf('top') > -1 || guide.toLowerCase().indexOf('bottom') > -1) {
-                            
-                            // positionGuide += ``;
-
-                        } else {
-
-                        }
-                    })
-
-                    html += `<div class="node" style='${style}'>
-                        <div class="label">${index+1}</div>
-                    </div>`;
+            tree2PlainObj(){
+                var obj = {};
+                this.bfsTree(this.tree, function(node){
+                    obj[node.id+''] = node
                 });
-                return html;
+                return obj;
             },
-            
+            positionTree(){
+                var siblings = [];       // 兄弟元素
+                var parent = {
+                    positionGuide: {},
+                    style: {}
+                };        // 父级元素
+                var self = this;
+                var tree = this.tree;
+                this.bfsTree(tree, function(child){
+                    let siblingId = ''; 
+                    var width = 0;
+                    
+                    child.positionGuide = child.positionGuide || {};
+                    child.style =  child.style || {};
+                    
+                    let isSibling = (siblings.length && self.isSibling(child, siblings[0]));
+                    if (!isSibling) {
+                        siblings = [];
+                    }
+                    Array.isArray(siblings) && siblings.forEach(item => {
+                        width = (item.positionGuide.marginLeft || 0) + (item.style.width || 0) + (item.positionGuide.marginRight || 0);
+                    });
+                    
+                    if (!child.isRoot){
+                        parent = self.getParent(child.id); 
+                    }
+
+                    // 与parent的left,top相关
+                    child.style.left = (width || 0) 
+                                    + (child.positionGuide.marginLeft || 0) 
+                                    + self.getProperty(parent, 'positionGuide', 'borderLeft') 
+                                    + self.getProperty(parent, 'positionGuide', 'paddingLeft');
+
+                    child.style.top = (child.positionGuide.marginTop || 0) 
+                                    + self.getProperty(parent, 'style', 'top')
+                                    + self.getProperty(parent, 'positionGuide', 'borderTop')
+                                    + self.getProperty(parent, 'positionGuide', 'paddingTop');
+
+                    if (!siblings.length || isSibling) {    // 判断是否为同一个父亲
+                        siblings.push(child);
+                    } 
+                });
+
+                return tree;
+            },
         },
         methods:{
             render(node){
                 var style = this.getStyle(node.style);
-                this._html += `<div class="node" style='${style}'>`;
+                this.nodeContent += `<div class="node" style='${style}'>
+                    <div class="label">${node.label || node.id.substr(-1)}</div>
+                `;
 
-                node.child.forEach(child=>{
+                // positionGuide
+                Object.keys(node.positionGuide).forEach(guide=>{
+                    let guideStyle = this.getStyle(this.getGuideStyle(node, guide));
+                    this.nodeContent += `<div class="positionGuide" style="${guideStyle}" data-text="${guide}">${node.positionGuide[guide]}</div>`
+                })
+                node.child && Array.isArray(node.child) && node.child.forEach(child=>{
                     this.render(child);
                 });
 
-                this._html += '</div>';
+                this.nodeContent += '</div>';
             },
-            getPositionGuideTop(node, guide){
-                if (guide.indexOf('marginTop') > -1) {
-                    // return node.style.top - guide.;
+            getGuideStyle(node , name){
+                var guideStyle = {
+                    'background-color': this.getPositionGuideBgColor(name) 
+                };
+                var value = node.positionGuide[name];
+                var hasTop = name.toLowerCase().indexOf('top') > 0;
+                var hasBottom = name.toLowerCase().indexOf('bottom') > 0
+                
+                if (hasTop || hasBottom) {
+                    guideStyle.width = node.style.width;
+                    guideStyle.height = value;
+                } else {
+                    guideStyle.width = value;
+                    guideStyle.height = node.style.height;
                 }
-                if (guide.indexOf('paddingTop') > -1) {
+                
+                node.style = node.style || {};
+                let {top, left, width, heigth} = node.style;
+                top = top || 0;
+                left = left || 0;
+                width = width || 0;
+                heigth = heigth || 0;
 
+                switch(name){
+                    case 'marginTop':
+                        guideStyle.top = - value;
+                        guideStyle.left = - this.getProperty(node, 'positionGuide', 'marginLeft') ;
+                        break;
+                    case 'marginBottom': 
+                        guideStyle.top = height;
+                        guideStyle.left = - this.getProperty(node, 'positionGuide', 'marginLeft');
+                        break;
+                    case 'marginLeft': 
+                        guideStyle.top = 0;
+                        guideStyle.left = - value;
+                        break;
+                    case 'marginRight':
+                        guideStyle.top = 0;
+                        guideStyle.left = width;
+                        break;
+
+                    case 'borderTop':
+                        guideStyle.top = 0;
+                        guideStyle.left = left;
+                        break;
+
+                    case 'paddingTop':
+                        guideStyle.top = this.getProperty(node, 'positionGuide', 'borderTop');
+                        guideStyle.left = 0;
+                        break;
+                }   
+
+                return guideStyle;
+            },
+            getCamelStyle(str){
+                 return str.replace(/[A-Z]/g, '-$1').toLowerCase();
+            },
+            getProperty(){
+                var value = 0;
+                try{
+                    var arr = Array.prototype.slice.call(arguments);
+                    value = arr.shift();
+                    
+                    arr.forEach(key => {
+                        value = value[key];
+                    });
+
+                }catch(e){
+                    value = 0;
                 }
-
-                if (guide.indexOf('marginBottom') > -1){
-                    return (node.style.top||0) + (node.style.height || 0) + (node.positionGuide.marginTop || 0);
-                }
-
+                return value || 0;
             },
             /**
              * 获取不同属性的背景颜色
@@ -164,35 +225,35 @@
             },
             getStyle(style){
                 var html = '';
-                style = this.getPosition(style);
                 for(let node in style){
-                    html += `${node}:${style[node]}px;`;
+                    var key = this.getCamelStyle(node);
+                    if (typeof style[node] == 'number'){
+                        html += `${key}:${style[node]}px;`;
+                    } else {
+                        html += `${key}:${style[node]};`;
+                    }
                 }
                 return html;
             },
-            // 通过盒子模型获得节点的定位
-            
-            getPosition(node){
-                var style = {};
-                var sibling = [];
-                
-                this.bfsTree(node, function(child){
-                    var width = 0;
-                    if (!sibling.length || child.id.substring(0,1) == sibling[0].id.substring(0,1)){    // 判断是否为同一个父亲
-                        sibling.push(child);
-                    } else {
-                        sibling = [];
-                    }
-                    
-                    sibling.forEach(item=>{
-                        width = (item.marginLeft || 0) + item.width + (item.marginRight || 0)
-                    });
-                    child.style.left = width || 0;
-                    child.style.top = item.marginTop || 0;
-                });
+            // 获取父节点
+            getParent(childId){
+                var parentId = childId.substring(0, childId.length - 1);
+                return this.tree2PlainObj[parentId] || {};
+            },
+            // 判断是否是兄弟
+            isSibling(left, right){
+                if (left.id.length !== right.id.length){
+                    return false;
+                }
+                var parentId = left.id.substring(0, left.id.length - 1);
+                if (parentId == right.id.substring(0, right.id.length - 1)){
+                    return true;
+                }
+                return false;
             },
             bindEvent(){
                 var nodes = document.querySelectorAll('.node');
+
                 nodes.forEach(ele=>{
                     ele.addEventListener('mousemove', function(e){
                         // ele.classList.add();
@@ -256,12 +317,16 @@
                 while(queue.length) {
                     var node = queue.shift();
                     cb && cb(node);
-                    queue = queue.concat(node.child);
+                    queue = queue.concat( (node && node.child || []) );
                 }
             },
         },
+
         mounted(){
             this.bindEvent();
+        },
+        created(){
+            this.render(this.positionTree);
         },
         components: {
             'el-button': Button,
@@ -334,6 +399,9 @@
         &.focus{
             box-shadow: 0 0 0 2px #68cfbb, 0 0 15px rgba(0,0,0,.2), inset 0 0 0 1px hsla(0,0%,100%,.2);
             z-index: 2;
+            >.positionGuide{
+                visibility: visible;
+            }
         }
 
         &.hover{
@@ -362,6 +430,7 @@
         -moz-user-select: none;
         -ms-user-select: none;
         user-select: none;
+        visibility: hidden;
     }
 
     .sliderBar{
