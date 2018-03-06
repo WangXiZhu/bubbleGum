@@ -6,22 +6,131 @@
 
         <div class="sliderBar">
             <div class="actions">
+                <el-row>
+                    <el-col :span="12">
+                         <el-dropdown type="primary" class="dropdown">
+                             <el-button type="primary" class="btn">
+                                Get Code<i class="el-icon-arrow-down el-icon--right"></i>
+                            </el-button>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item>Vue</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                    </el-col>
 
+                    <el-col :span="12">
+                        <el-button class="share-btn btn" >
+                            share URL
+                        </el-button>
+                    </el-col>
+                </el-row>
             </div>
             <div class="editor">
+                <template>
+                    <el-tabs v-model="activeName" @tab-click="handleClick">
+                        <el-tab-pane label="Flex" name="first">
+                            <div class="flex">
+                                <div class="direction">
+                                    
+                                    <h2>DIRECTION 
+                                        <el-popover class="item" effect="dark" title="Defines the direction of which text and items are laid out" placement="top">
+                                            <slot name="content">
+                                                
+                                            </slot>
 
+                                            <i class="el-icon-info "></i>
+                                        </el-popover>
+                                    </h2>  
+                                    <el-radio-group v-model="direction" size="medium">
+                                        <el-radio-button label="inherit">inhrit</el-radio-button>
+                                        <el-radio-button label="ltr">ltr</el-radio-button>
+                                        <el-radio-button label="rtl">rtl</el-radio-button>
+                                    </el-radio-group>
+                                </div>
+
+                                <div class="flex-direction">
+                                    <h2>FLEX DIRECTION <i class="el-icon-info "></i></h2>  
+                                    <el-select v-model="flexDirectionValue" placeholder="row">
+                                        <el-option
+                                            v-for="(item, index) in flexDirectionOptions"
+                                            :key="index"
+                                            :label="item"
+                                            :value="item">
+                                        </el-option>
+                                    </el-select>
+                                </div>
+
+                                <div class="flex-basic-grow ">
+                                    <el-row class="" :gutter="10">
+                                        <el-col  :span="8">
+                                            <h2>BASIS <i class="el-icon-info "></i></h2>
+                                            <el-input v-model="flexBasic" placeholder="undefined"></el-input>
+                                        </el-col>
+                                        <el-col  :span="8">
+                                            <h2>GROW <i class="el-icon-info "></i></h2>
+                                            <el-input v-model="flexGrow" placeholder="undefined"></el-input>
+                                        </el-col>
+                                        <el-col  :span="8">
+                                            <h2>SHRINK <i class="el-icon-info "></i></h2>
+                                            <el-input v-model="flexShrink" placeholder="undefined"></el-input>
+                                        </el-col>
+                                    </el-row>
+                                </div>
+
+
+                                <div class="flex-wrap">
+                                    <h2>FLEX WRAP <i class="el-icon-info "></i></h2>
+                                    <el-radio-group v-model="flexWrap" size="medium">
+                                        <el-radio-button label="nowrap">no wrap</el-radio-button>
+                                        <el-radio-button label="wrap">wrap</el-radio-button>
+                                        <el-radio-button label="wrapreverse">wrap reverse</el-radio-button>
+                                    </el-radio-group>
+                                </div>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="Alignment" name="second">Alignment</el-tab-pane>
+                        <el-tab-pane label="Layout" name="third">Layout</el-tab-pane>
+                    </el-tabs>
+                </template>
+
+                <el-row class="editorButton" :gutter="30">  
+                    <el-col :span="12">
+                        <el-button type="primary" plain> 
+                            <i class="el-icon-circle-plus-outline "></i>
+                            add child node</el-button>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-button type="danger" plain>
+                            <i class="el-icon-circle-close-outline "></i>
+                            remove node</el-button>
+                    </el-col>
+
+                </el-row>  
+
+                <div class="noContent" v-if="false">
+                    Select a node to edit its properties
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    import {Button} from 'element-ui';
+    import {Button, Tabs, Dropdown, Row, Col} from 'element-ui';
     import {postOrder} from '../../lib/tree';
 
     export default {
         data(){
             return {
+                activeName: 'first',
+                direction: 'inherit',
+                flexDirectionOptions: ['column', 'column reserve', 'row', 'row reserve'],
+                flexDirectionValue: 'row',
+                flexBasic: 'auto',
+                flexShrink: 1,
+                flexGrow: 0,
+                flexWrap: 'nowrap',
+                
                 positionGuideBgColor: {
                     margin: 'rgba(214, 43, 28, 0.1)',
                     padding: 'rgba(123, 179, 41, 0.1)',
@@ -122,6 +231,9 @@
             },
         },
         methods:{
+            handleClick(){
+
+            },
             render(node){
                 var style = this.getStyle(node.style);
                 this.nodeContent += `<div class="node" style='${style}'>
@@ -330,6 +442,10 @@
         },
         components: {
             'el-button': Button,
+            'el-dropdown': Dropdown,
+            'el-tab': Tabs,
+            'el-row': Row,
+            'el-col': Col
         }
     }
 </script>
@@ -445,7 +561,8 @@
         -ms-flex-direction: column;
         flex-direction: column;
         margin: 25px;
-        max-height: calc(100% - 50px);
+        max-height: 90%;
+        
         border-radius: 6px;
         bottom: auto;
         box-shadow: 3px 3px 15px rgba(0,0,0,.15);
@@ -461,6 +578,61 @@
             flex-direction: column;
             height: 100%;
             border-top: 1px solid #e8e8e8;
+        }
+    }
+
+    .editor{
+
+        h2{
+            margin-bottom: 8px;
+            margin-top: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #444950;
+            text-transform: uppercase;
+        }
+
+        .noContent{
+                // border-top: 1px solid #e8e8e8;
+                font-size: 18px;
+                padding: 30px 50px;
+                text-align: center;
+                color: #d9d9d9;
+                font-weight: 300;
+                line-height: 130%;
+        }
+
+        .el-tabs{
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-direction: column;
+            flex-direction: column;
+        }
+
+        .el-tabs__content{
+            overflow-y: scroll;
+            padding: 0 15px 15px;
+            margin-top: -15px;
+            background: #fff;
+        }
+
+        .editorButton{
+            padding: 0 15px;
+        }
+    }
+
+    .actions{
+        .dropdown{
+            width: 100%;
+            padding: 0 7px;
+            box-sizing: border-box;
+        }
+
+        .btn{
+            width: 100%;
+        }
+        .share-btn{
+            box-sizing: border-box;
         }
     }
 </style>
