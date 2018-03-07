@@ -5,108 +5,10 @@
         </div>
 
         <div class="sliderBar">
-            <div class="actions">
-                <el-row>
-                    <el-col :span="12">
-                         <el-dropdown type="primary" class="dropdown">
-                             <el-button type="primary" class="btn">
-                                Get Code<i class="el-icon-arrow-down el-icon--right"></i>
-                            </el-button>
-                            <el-dropdown-menu slot="dropdown">
-                                <el-dropdown-item>Vue</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </el-dropdown>
-                    </el-col>
-
-                    <el-col :span="12">
-                        <el-button class="share-btn btn" >
-                            share URL
-                        </el-button>
-                    </el-col>
-                </el-row>
-            </div>
+            <Actions></Actions>
             <div class="editor">
-                <template>
-                    <el-tabs v-model="activeName" @tab-click="handleClick">
-                        <el-tab-pane label="Flex" name="first">
-                            <div class="flex">
-                                <div class="direction">
-                                    
-                                    <h2>DIRECTION 
-                                        <el-popover class="item" effect="dark" title="Defines the direction of which text and items are laid out" placement="top">
-                                            <slot name="content">
-                                                
-                                            </slot>
-
-                                            <i class="el-icon-info "></i>
-                                        </el-popover>
-                                    </h2>  
-                                    <el-radio-group v-model="direction" size="medium">
-                                        <el-radio-button label="inherit">inhrit</el-radio-button>
-                                        <el-radio-button label="ltr">ltr</el-radio-button>
-                                        <el-radio-button label="rtl">rtl</el-radio-button>
-                                    </el-radio-group>
-                                </div>
-
-                                <div class="flex-direction">
-                                    <h2>FLEX DIRECTION <i class="el-icon-info "></i></h2>  
-                                    <el-select v-model="flexDirectionValue" placeholder="row">
-                                        <el-option
-                                            v-for="(item, index) in flexDirectionOptions"
-                                            :key="index"
-                                            :label="item"
-                                            :value="item">
-                                        </el-option>
-                                    </el-select>
-                                </div>
-
-                                <div class="flex-basic-grow ">
-                                    <el-row class="" :gutter="10">
-                                        <el-col  :span="8">
-                                            <h2>BASIS <i class="el-icon-info "></i></h2>
-                                            <el-input v-model="flexBasic" placeholder="undefined"></el-input>
-                                        </el-col>
-                                        <el-col  :span="8">
-                                            <h2>GROW <i class="el-icon-info "></i></h2>
-                                            <el-input v-model="flexGrow" placeholder="undefined"></el-input>
-                                        </el-col>
-                                        <el-col  :span="8">
-                                            <h2>SHRINK <i class="el-icon-info "></i></h2>
-                                            <el-input v-model="flexShrink" placeholder="undefined"></el-input>
-                                        </el-col>
-                                    </el-row>
-                                </div>
-
-
-                                <div class="flex-wrap">
-                                    <h2>FLEX WRAP <i class="el-icon-info "></i></h2>
-                                    <el-radio-group v-model="flexWrap" size="medium">
-                                        <el-radio-button label="nowrap">no wrap</el-radio-button>
-                                        <el-radio-button label="wrap">wrap</el-radio-button>
-                                        <el-radio-button label="wrapreverse">wrap reverse</el-radio-button>
-                                    </el-radio-group>
-                                </div>
-                            </div>
-                        </el-tab-pane>
-                        <el-tab-pane label="Alignment" name="second">Alignment</el-tab-pane>
-                        <el-tab-pane label="Layout" name="third">Layout</el-tab-pane>
-                    </el-tabs>
-                </template>
-
-                <el-row class="editorButton" :gutter="30">  
-                    <el-col :span="12">
-                        <el-button type="primary" plain> 
-                            <i class="el-icon-circle-plus-outline "></i>
-                            add child node</el-button>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-button type="danger" plain>
-                            <i class="el-icon-circle-close-outline "></i>
-                            remove node</el-button>
-                    </el-col>
-
-                </el-row>  
-
+                <v-tab></v-tab>
+                <EditorButton></EditorButton>
                 <div class="noContent" v-if="false">
                     Select a node to edit its properties
                 </div>
@@ -119,17 +21,15 @@
     import {Button, Tabs, Dropdown, Row, Col} from 'element-ui';
     import {postOrder} from '../../lib/tree';
 
+    import vTabs from '../modules/v-tabs.vue';
+    import Actions from '../modules/actions.vue';
+    import EditorButton from '../modules/editorButton.vue';
+
     export default {
         data(){
             return {
-                activeName: 'first',
-                direction: 'inherit',
-                flexDirectionOptions: ['column', 'column reserve', 'row', 'row reserve'],
-                flexDirectionValue: 'row',
-                flexBasic: 'auto',
-                flexShrink: 1,
-                flexGrow: 0,
-                flexWrap: 'nowrap',
+                activeName: 'third',
+                
                 
                 positionGuideBgColor: {
                     margin: 'rgba(214, 43, 28, 0.1)',
@@ -445,7 +345,10 @@
             'el-dropdown': Dropdown,
             'el-tab': Tabs,
             'el-row': Row,
-            'el-col': Col
+            'el-col': Col,
+            'v-tab' : vTabs,
+            EditorButton,
+            Actions
         }
     }
 </script>
@@ -618,21 +521,9 @@
 
         .editorButton{
             padding: 0 15px;
+            background-color: #fff;
         }
     }
 
-    .actions{
-        .dropdown{
-            width: 100%;
-            padding: 0 7px;
-            box-sizing: border-box;
-        }
-
-        .btn{
-            width: 100%;
-        }
-        .share-btn{
-            box-sizing: border-box;
-        }
-    }
+    
 </style>
